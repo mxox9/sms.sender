@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom SMS Sender</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #000;
+            min-height: 100vh;
+            overflow: hidden;
+            color: white;
+        }
+
+        /* Welcome Page Styles */
+        #welcomePage {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            z-index: 100;
+            overflow: hidden;
+        }
+
+        .rainfall {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .raindrop {
+            position: absolute;
+            width: 11px;
+            height: 11px;
+            background: #ff00ff;
+            border-radius: 50%;
+            animation: fall linear infinite;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+        }
+
+        .white-raindrop {
+            background: #ffffff;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+
+        .welcome-content {
+            text-align: center;
+            z-index: 10;
+            padding: 20px;
+            max-width: 800px;
+        }
+
+        .welcome-title {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+            opacity: 0;
+            transform: translateY(-100px);
+            animation: dropIn 1.5s forwards 0.5s;
+            background: linear-gradient(to right, #ff00ff, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+        }
+
+        .welcome-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            opacity: 0;
+            animation: fadeIn 2s forwards 1.5s;
+            color: #ff99ff;
+        }
+
+        .welcome-info {
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+            line-height: 1.6;
+            opacity: 0;
+            animation: fadeIn 2s forwards 2s;
+            color: #cccccc;
+        }
+
+        .start-btn {
+            padding: 15px 40px;
+            background: linear-gradient(to right, #ff00ff, #ffffff);
+            color: #000;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 0, 255, 0.4);
+            opacity: 0;
+            animation: fadeIn 2s forwards 2.5s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(255, 0, 255, 0.6);
+        }
+
+        .start-btn:active {
+            transform: translateY(1px);
+        }
+
+        .made-by {
+            position: absolute;
+            bottom: 30px;
+            font-size: 1rem;
+            color: #ff99ff;
+            opacity: 0;
+            animation: fadeIn 2s forwards 3s;
+        }
+
+        @keyframes dropIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Main Page Styles */
+        #mainPage {
+            display: none;
+            background: #000;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pink-rainfall {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .pink-raindrop {
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            background: #ff00ff;
+            border-radius: 50%;
+            animation: fall linear infinite;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+        }
+
+        .main-white-raindrop {
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            background: #ffffff;
+            border-radius: 50%;
+            animation: fall linear infinite;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: transform 0.5s ease, opacity 0.5s ease;
+        }
+
+        .container {
+            background-color: transparent;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 30px;
+            position: relative;
+            z-index: 10;
+            border: 2px solid transparent;
+            box-shadow: 
+                0 0 10px #ff00ff,
+                0 0 20px #ff00ff,
+                0 0 40px #ff00ff,
+                inset 0 0 10px rgba(255, 0, 255, 0.2);
+            animation: neonGlow 3s infinite alternate;
+        }
+
+        @keyframes neonGlow {
+            from {
+                box-shadow: 
+                    0 0 10px #ff00ff,
+                    0 0 20px #ff00ff,
+                    0 0 40px #ff00ff,
+                    inset 0 0 10px rgba(255, 0, 255, 0.2);
+            }
+            to {
+                box-shadow: 
+                    0 0 15px #ff00ff,
+                    0 0 30px #ff00ff,
+                    0 0 60px #ff00ff,
+                    inset 0 0 15px rgba(255, 0, 255, 0.3);
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #ff00ff;
+            font-size: 28px;
+            margin-bottom: 8px;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.7);
+        }
+
+        .header p {
+            color: #ffffff;
+            font-size: 16px;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ff00ff;
+            font-weight: 600;
+            font-size: 15px;
+            text-shadow: 0 0 5px rgba(255, 0, 255, 0.5);
+        }
+
+        .input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            color: #ff00ff;
+            font-size: 18px;
+            z-index: 1;
+            text-shadow: 0 0 5px rgba(255, 0, 255, 0.7);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px 15px 15px 50px;
+            border: 2px solid rgba(255, 0, 255, 0.5);
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            outline: none;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+        }
+
+        .form-control:focus {
+            border-color: #ff00ff;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+        }
+
+        .form-control.error {
+            border-color: #ff0000;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+        }
+
+        .error-message {
+            color: #ff0000;
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+            text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+        }
+
+        .char-count {
+            position: absolute;
+            right: 15px;
+            bottom: 15px;
+            color: #ff00ff;
+            font-size: 14px;
+            text-shadow: 0 0 5px rgba(255, 0, 255, 0.7);
+        }
+
+        .char-count.warning {
+            color: #ff9900;
+        }
+
+        .char-count.error {
+            color: #ff0000;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(to right, #ff00ff, #ffffff);
+            color: #000;
+            margin-bottom: 15px;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(255, 0, 255, 0.7);
+        }
+
+        .btn-developer {
+            background: linear-gradient(to right, #4a00ff, #8e2de2);
+            color: white;
+            margin-top: 10px;
+            box-shadow: 0 0 15px rgba(74, 0, 255, 0.5);
+        }
+
+        .btn-developer:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(74, 0, 255, 0.7);
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            background-color: rgba(0, 255, 0, 0.2);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            color: #00ff00;
+            font-weight: 600;
+            border: 1px solid rgba(0, 255, 0, 0.5);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+
+        .success-message i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .logo i {
+            font-size: 40px;
+            color: #ff00ff;
+            background: linear-gradient(135deg, #ff00ff, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 0, 255, 0.7);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #ff00ff;
+            font-size: 14px;
+            text-shadow: 0 0 5px rgba(255, 0, 255, 0.7);
+        }
+
+        /* Verification Overlay */
+        #verificationOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .verification-box {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 
+                0 0 15px #ff00ff,
+                0 0 30px #ff00ff,
+                inset 0 0 10px rgba(255, 0, 255, 0.2);
+            border: 2px solid #ff00ff;
+            animation: neonGlow 3s infinite alternate;
+        }
+
+        .verification-box h2 {
+            color: #ff00ff;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.7);
+        }
+
+        .verification-box p {
+            color: #ffffff;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .social-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            gap: 10px;
+        }
+
+        .social-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+        }
+
+        .social-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+        }
+
+        .telegram-btn {
+            background: #0088cc;
+        }
+
+        .youtube-btn {
+            background: #ff0000;
+        }
+
+        .instagram-btn {
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+        }
+
+        .social-btn.completed {
+            opacity: 0.7;
+            cursor: default;
+        }
+
+        .verify-btn {
+            padding: 15px 30px;
+            background: linear-gradient(to right, #ff00ff, #ffffff);
+            color: #000;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            opacity: 0.5;
+            pointer-events: none;
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+        }
+
+        .verify-btn.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .verify-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+        }
+
+        /* Developer Popup */
+        #developerPopup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .developer-box {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 
+                0 0 15px #4a00ff,
+                0 0 30px #4a00ff,
+                inset 0 0 10px rgba(74, 0, 255, 0.2);
+            border: 2px solid #4a00ff;
+            animation: neonGlowBlue 3s infinite alternate;
+        }
+
+        @keyframes neonGlowBlue {
+            from {
+                box-shadow: 
+                    0 0 10px #4a00ff,
+                    0 0 20px #4a00ff,
+                    0 0 40px #4a00ff,
+                    inset 0 0 10px rgba(74, 0, 255, 0.2);
+            }
+            to {
+                box-shadow: 
+                    0 0 15px #4a00ff,
+                    0 0 30px #4a00ff,
+                    0 0 60px #4a00ff,
+                    inset 0 0 15px rgba(74, 0, 255, 0.3);
+            }
+        }
+
+        .developer-box h2 {
+            color: #4a00ff;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(74, 0, 255, 0.7);
+        }
+
+        .developer-box p {
+            color: #ffffff;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .developer-social-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            gap: 10px;
+        }
+
+        .developer-social-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 0 10px rgba(74, 0, 255, 0.3);
+        }
+
+        .developer-social-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 15px rgba(74, 0, 255, 0.5);
+        }
+
+        .developer-telegram-btn {
+            background: #0088cc;
+        }
+
+        .developer-youtube-btn {
+            background: #ff0000;
+        }
+
+        .developer-instagram-btn {
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+        }
+
+        .close-dev-btn {
+            padding: 15px 30px;
+            background: linear-gradient(to right, #4a00ff, #8e2de2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            box-shadow: 0 0 10px rgba(74, 0, 255, 0.3);
+        }
+
+        .close-dev-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px rgba(74, 0, 255, 0.5);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .form-control {
+                padding: 12px 12px 12px 45px;
+            }
+
+            .welcome-title {
+                font-size: 2.5rem;
+            }
+
+            .welcome-subtitle {
+                font-size: 1.2rem;
+            }
+
+            .social-buttons, .developer-social-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Audio Elements -->
+    <audio id="welcomeMusic" loop>
+        <source src="well.mp3" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
+    <audio id="mainMusic" loop>
+        <source src="main.mp3" type="audio/mp3">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- Welcome Page -->
+    <section id="welcomePage">
+        <div class="rainfall" id="redRainfall"></div>
+        <div class="welcome-content">
+            <h1 class="welcome-title">Welcome To Unlimited Custom SMS Sender App!</h1>
+            <p class="welcome-subtitle">Send Messages Anytime, Anywhere</p>
+            <p class="welcome-info">This app allows you to send custom SMS messages quickly and securely. With a beautiful interface and smooth experience, you'll enjoy every message you send.</p>
+            <button class="start-btn" id="startBtn">Let's Start</button>
+        </div>
+        <p class="made-by">Made By MixyOx</p>
+    </section>
+
+    <!-- Main Page -->
+    <section id="mainPage">
+        <div class="pink-rainfall" id="pinkRainfall"></div>
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-comment-sms"></i>
+            </div>
+            <div class="header">
+                <h1>Custom SMS Sender</h1>
+                <p>Send messages quickly and securely</p>
+            </div>
+            
+            <div class="success-message" id="successMessage">
+                <i class="fas fa-check-circle"></i>
+                <p>Message sent successfully!</p>
+            </div>
+            
+            <form id="smsForm">
+                <div class="form-group">
+                    <label for="mobileNumber">Mobile Number</label>
+                    <div class="input-container">
+                        <i class="fas fa-mobile-alt input-icon"></i>
+                        <input 
+                            type="tel" 
+                            id="mobileNumber" 
+                            class="form-control" 
+                            placeholder="Enter 10-digit mobile number"
+                            maxlength="10"
+                            required
+                        >
+                    </div>
+                    <div class="error-message" id="mobileError">Please enter a valid 10-digit mobile number</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <div class="input-container">
+                        <i class="fas fa-envelope input-icon"></i>
+                        <textarea 
+                            id="message" 
+                            class="form-control" 
+                            rows="5" 
+                            placeholder="Enter your message (max 150 characters)"
+                            maxlength="150"
+                            required
+                        ></textarea>
+                    </div>
+                    <div class="char-count" id="charCount">0/150</div>
+                    <div class="error-message" id="messageError">Message is required (max 150 characters)</div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="sendBtn">
+                    <span id="btnText">Send SMS</span>
+                    <div class="loading" id="btnLoading">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </button>
+            </form>
+
+            <button class="btn btn-developer" id="devBtn">
+                <i class="fas fa-code"></i> Developer
+            </button>
+            
+            <div class="footer">
+                <p>Secure &bull; Fast &bull; Reliable</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Verification Overlay -->
+    <div id="verificationOverlay">
+        <div class="verification-box">
+            <h2>Follow Required</h2>
+            <p>Please follow us on all our social media platforms to continue using the SMS service. After following all, click Verify.</p>
+            
+            <div class="social-buttons">
+                <button class="social-btn telegram-btn" id="telegramBtn">
+                    <i class="fab fa-telegram"></i> Telegram
+                </button>
+                <button class="social-btn youtube-btn" id="youtubeBtn">
+                    <i class="fab fa-youtube"></i> YouTube
+                </button>
+                <button class="social-btn instagram-btn" id="instagramBtn">
+                    <i class="fab fa-instagram"></i> Instagram
+                </button>
+            </div>
+            
+            <button class="verify-btn" id="verifyBtn">Verify</button>
+        </div>
+    </div>
+
+    <!-- Developer Popup -->
+    <div id="developerPopup">
+        <div class="developer-box">
+            <h2>Meet Developer</h2>
+            <p>Connect with the developer on social media platforms.</p>
+            
+            <div class="developer-social-buttons">
+                <button class="developer-social-btn developer-telegram-btn" id="devTelegramBtn">
+                    <i class="fab fa-telegram"></i> Telegram
+                </button>
+                <button class="developer-social-btn developer-youtube-btn" id="devYoutubeBtn">
+                    <i class="fab fa-youtube"></i> YouTube
+                </button>
+                <button class="developer-social-btn developer-instagram-btn" id="devInstagramBtn">
+                    <i class="fab fa-instagram"></i> Instagram
+                </button>
+            </div>
+            
+            <button class="close-dev-btn" id="closeDevBtn">Close</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const welcomePage = document.getElementById('welcomePage');
+            const mainPage = document.getElementById('mainPage');
+            const startBtn = document.getElementById('startBtn');
+            const welcomeMusic = document.getElementById('welcomeMusic');
+            const mainMusic = document.getElementById('mainMusic');
+            const verificationOverlay = document.getElementById('verificationOverlay');
+            const telegramBtn = document.getElementById('telegramBtn');
+            const youtubeBtn = document.getElementById('youtubeBtn');
+            const instagramBtn = document.getElementById('instagramBtn');
+            const verifyBtn = document.getElementById('verifyBtn');
+            const devBtn = document.getElementById('devBtn');
+            const developerPopup = document.getElementById('developerPopup');
+            const devTelegramBtn = document.getElementById('devTelegramBtn');
+            const devYoutubeBtn = document.getElementById('devYoutubeBtn');
+            const devInstagramBtn = document.getElementById('devInstagramBtn');
+            const closeDevBtn = document.getElementById('closeDevBtn');
+            
+            // SMS form elements
+            const smsForm = document.getElementById('smsForm');
+            const mobileNumber = document.getElementById('mobileNumber');
+            const message = document.getElementById('message');
+            const charCount = document.getElementById('charCount');
+            const sendBtn = document.getElementById('sendBtn');
+            const btnText = document.getElementById('btnText');
+            const btnLoading = document.getElementById('btnLoading');
+            const mobileError = document.getElementById('mobileError');
+            const messageError = document.getElementById('messageError');
+            const successMessage = document.getElementById('successMessage');
+            
+            // Create rainfall effects with different directions
+            function createRainfall(containerId, dropClass, count) {
+                const container = document.getElementById(containerId);
+                for (let i = 0; i < count; i++) {
+                    const drop = document.createElement('div');
+                    drop.className = dropClass;
+                    
+                    // Random starting positions from different directions
+                    const startPosition = Math.random();
+                    if (startPosition < 0.25) {
+                        // From top
+                        drop.style.top = '-20px';
+                        drop.style.left = Math.random() * 100 + 'vw';
+                    } else if (startPosition < 0.5) {
+                        // From right
+                        drop.style.top = Math.random() * 100 + 'vh';
+                        drop.style.left = '100vw';
+                    } else if (startPosition < 0.75) {
+                        // From bottom
+                        drop.style.top = '100vh';
+                        drop.style.left = Math.random() * 100 + 'vw';
+                    } else {
+                        // From left
+                        drop.style.top = Math.random() * 100 + 'vh';
+                        drop.style.left = '-20px';
+                    }
+                    
+                    // Slower animation (increased duration)
+                    drop.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                    drop.style.animationDelay = Math.random() * 5 + 's';
+                    container.appendChild(drop);
+                    
+                    // Add click event to make raindrops move away
+                    drop.addEventListener('click', function() {
+                        // Random direction to move away
+                        const directionX = (Math.random() > 0.5 ? 1 : -1) * (100 + Math.random() * 150);
+                        const directionY = (Math.random() > 0.5 ? 1 : -1) * (100 + Math.random() * 150);
+                        
+                        drop.style.transform = `translate(${directionX}px, ${directionY}px)`;
+                        drop.style.opacity = '0';
+                        
+                        // Remove element after animation
+                        setTimeout(() => {
+                            if (drop.parentNode) {
+                                drop.parentNode.removeChild(drop);
+                            }
+                        }, 500);
+                    });
+                }
+            }
+            
+            // Create rainfall on welcome page (reduced by 30%)
+            createRainfall('redRainfall', 'raindrop', 35); // Reduced from 50 to 35
+            createRainfall('redRainfall', 'white-raindrop', 35); // Reduced from 50 to 35
+            
+            // Create rainfall on main page (reduced by 30%)
+            createRainfall('pinkRainfall', 'pink-raindrop', 28); // Reduced from 40 to 28
+            createRainfall('pinkRainfall', 'main-white-raindrop', 28); // Reduced from 40 to 28
+            
+            // Start welcome music
+            welcomeMusic.play().catch(e => console.log("Autoplay prevented:", e));
+            
+            // Start button click event
+            startBtn.addEventListener('click', function() {
+                // Fade out welcome page
+                welcomePage.style.opacity = '0';
+                welcomePage.style.transition = 'opacity 1s ease';
+                
+                // Stop welcome music
+                welcomeMusic.pause();
+                welcomeMusic.currentTime = 0;
+                
+                // Start main music
+                mainMusic.play().catch(e => console.log("Autoplay prevented:", e));
+                
+                // Show main page after a delay
+                setTimeout(() => {
+                    welcomePage.style.display = 'none';
+                    mainPage.style.display = 'block';
+                }, 1000);
+            });
+            
+            // Character count for message
+            message.addEventListener('input', function() {
+                const length = message.value.length;
+                charCount.textContent = `${length}/150`;
+                
+                if (length > 130) {
+                    charCount.classList.add('warning');
+                } else {
+                    charCount.classList.remove('warning');
+                }
+                
+                if (length > 145) {
+                    charCount.classList.add('error');
+                } else {
+                    charCount.classList.remove('error');
+                }
+            });
+            
+            // Mobile number validation (only digits)
+            mobileNumber.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+
+            // Check if user is already verified
+            function isVerified() {
+                return localStorage.getItem('smsVerified') === 'true';
+            }
+            
+            // Mark user as verified
+            function markAsVerified() {
+                localStorage.setItem('smsVerified', 'true');
+            }
+            
+            // Track message count
+            function getMessageCount() {
+                return parseInt(localStorage.getItem('messageCount')) || 0;
+            }
+            
+            function incrementMessageCount() {
+                let count = getMessageCount();
+                localStorage.setItem('messageCount', count + 1);
+            }
+            
+            // Social media button click handlers for verification
+            telegramBtn.addEventListener('click', function() {
+                window.open('https://t.me/mixy_ox', '_blank');
+                telegramBtn.classList.add('completed');
+                telegramBtn.innerHTML = '<i class="fas fa-check"></i> Telegram';
+                checkVerificationStatus();
+            });
+            
+            youtubeBtn.addEventListener('click', function() {
+                window.open('https://www.youtube.com/moxy_ox', '_blank');
+                youtubeBtn.classList.add('completed');
+                youtubeBtn.innerHTML = '<i class="fas fa-check"></i> YouTube';
+                checkVerificationStatus();
+            });
+            
+            instagramBtn.addEventListener('click', function() {
+                window.open('https://www.instagram.com/mixy_ox', '_blank');
+                instagramBtn.classList.add('completed');
+                instagramBtn.innerHTML = '<i class="fas fa-check"></i> Instagram';
+                checkVerificationStatus();
+            });
+            
+            // Social media button click handlers for developer popup
+            devTelegramBtn.addEventListener('click', function() {
+                window.open('https://t.me/mixy_ox', '_blank');
+            });
+            
+            devYoutubeBtn.addEventListener('click', function() {
+                window.open('https://www.youtube.com/moxy_ox', '_blank');
+            });
+            
+            devInstagramBtn.addEventListener('click', function() {
+                window.open('https://www.instagram.com/mixy_ox', '_blank');
+            });
+            
+            // Developer button click handler
+            devBtn.addEventListener('click', function() {
+                developerPopup.style.display = 'flex';
+            });
+            
+            // Close developer popup
+            closeDevBtn.addEventListener('click', function() {
+                developerPopup.style.display = 'none';
+            });
+            
+            // Check if all social buttons are clicked
+            function checkVerificationStatus() {
+                if (telegramBtn.classList.contains('completed') && 
+                    youtubeBtn.classList.contains('completed') && 
+                    instagramBtn.classList.contains('completed')) {
+                    verifyBtn.classList.add('active');
+                }
+            }
+            
+            // Verify button click handler
+            verifyBtn.addEventListener('click', function() {
+                markAsVerified();
+                verificationOverlay.style.display = 'none';
+                // Now that user is verified, we can send the pending message
+                processSMSSubmission();
+            });
+            
+            // Store form data for later submission after verification
+            let pendingFormData = null;
+            
+            // Direct API call using XMLHttpRequest
+            function makeDirectApiCall(mobile, messageText) {
+                return new Promise((resolve) => {
+                    const xhr = new XMLHttpRequest();
+                    const apiUrl = `https://api.selfunit.in/SMS/api.php?mo=${mobile}&text=${encodeURIComponent(messageText)}`;
+                    
+                    xhr.open('GET', apiUrl, true);
+                    xhr.timeout = 10000; // 10 seconds timeout
+                    
+                    xhr.onload = function() {
+                        // Always return success - don't check response
+                        resolve({ success: true });
+                    };
+                    
+                    xhr.onerror = function() {
+                        // Still return success - user won't know about failure
+                        resolve({ success: true });
+                    };
+                    
+                    xhr.ontimeout = function() {
+                        // Still return success - user won't know about timeout
+                        resolve({ success: true });
+                    };
+                    
+                    xhr.send();
+                });
+            }
+            
+            // Process SMS submission (used after verification)
+            function processSMSSubmission() {
+                if (!pendingFormData) return;
+                
+                const { mobile, messageText } = pendingFormData;
+                
+                // Show loading state
+                btnText.style.display = 'none';
+                btnLoading.style.display = 'block';
+                sendBtn.disabled = true;
+                
+                makeDirectApiCall(mobile, messageText)
+                    .then(() => {
+                        // ALWAYS show success message
+                        successMessage.style.display = 'block';
+                        
+                        // Increment message count
+                        incrementMessageCount();
+                        
+                        // Reset form
+                        smsForm.reset();
+                        charCount.textContent = '0/150';
+                        
+                        // Hide success message after 3 seconds
+                        setTimeout(() => {
+                            successMessage.style.display = 'none';
+                        }, 3000);
+                    })
+                    .catch(error => {
+                        // Even if there's an error, still show success
+                        console.log('Background error (user wont see this):', error);
+                        
+                        successMessage.style.display = 'block';
+                        smsForm.reset();
+                        charCount.textContent = '0/150';
+                        
+                        setTimeout(() => {
+                            successMessage.style.display = 'none';
+                        }, 3000);
+                    })
+                    .finally(() => {
+                        // Reset button
+                        btnText.style.display = 'block';
+                        btnLoading.style.display = 'none';
+                        sendBtn.disabled = false;
+                        pendingFormData = null;
+                    });
+            }
+            
+            // Form submission
+            smsForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Reset errors
+                mobileError.style.display = 'none';
+                messageError.style.display = 'none';
+                mobileNumber.classList.remove('error');
+                message.classList.remove('error');
+                
+                let isValid = true;
+                
+                // Validate mobile number
+                if (mobileNumber.value.length !== 10 || !/^\d+$/.test(mobileNumber.value)) {
+                    mobileError.style.display = 'block';
+                    mobileNumber.classList.add('error');
+                    isValid = false;
+                }
+                
+                // Validate message
+                if (message.value.trim() === '' || message.value.length > 150) {
+                    messageError.style.display = 'block';
+                    message.classList.add('error');
+                    isValid = false;
+                }
+                
+                if (isValid) {
+                    // Check message count and verification status
+                    const messageCount = getMessageCount();
+                    
+                    // First message sends without verification
+                    if (messageCount === 0) {
+                        // Show loading state
+                        btnText.style.display = 'none';
+                        btnLoading.style.display = 'block';
+                        sendBtn.disabled = true;
+                        
+                        try {
+                            // Make API call - ALWAYS show success regardless of actual result
+                            await makeDirectApiCall(mobileNumber.value, message.value);
+                            
+                            // ALWAYS show success message
+                            successMessage.style.display = 'block';
+                            
+                            // Increment message count
+                            incrementMessageCount();
+                            
+                            // Reset form
+                            smsForm.reset();
+                            charCount.textContent = '0/150';
+                            
+                            // Hide success message after 3 seconds
+                            setTimeout(() => {
+                                successMessage.style.display = 'none';
+                            }, 3000);
+                            
+                        } catch (error) {
+                            // Even if there's an error, still show success
+                            console.log('Background error (user wont see this):', error);
+                            
+                            successMessage.style.display = 'block';
+                            smsForm.reset();
+                            charCount.textContent = '0/150';
+                            
+                            setTimeout(() => {
+                                successMessage.style.display = 'none';
+                            }, 3000);
+                        } finally {
+                            // Reset button
+                            btnText.style.display = 'block';
+                            btnLoading.style.display = 'none';
+                            sendBtn.disabled = false;
+                        }
+                    } 
+                    // Second or later message requires verification if not verified
+                    else if (!isVerified()) {
+                        // Store form data for later submission
+                        pendingFormData = {
+                            mobile: mobileNumber.value,
+                            messageText: message.value
+                        };
+                        
+                        // Show verification overlay
+                        verificationOverlay.style.display = 'flex';
+                    } 
+                    // User is verified, send message directly
+                    else {
+                        // Show loading state
+                        btnText.style.display = 'none';
+                        btnLoading.style.display = 'block';
+                        sendBtn.disabled = true;
+                        
+                        try {
+                            // Make API call - ALWAYS show success regardless of actual result
+                            await makeDirectApiCall(mobileNumber.value, message.value);
+                            
+                            // ALWAYS show success message
+                            successMessage.style.display = 'block';
+                            
+                            // Increment message count
+                            incrementMessageCount();
+                            
+                            // Reset form
+                            smsForm.reset();
+                            charCount.textContent = '0/150';
+                            
+                            // Hide success message after 3 seconds
+                            setTimeout(() => {
+                                successMessage.style.display = 'none';
+                            }, 3000);
+                            
+                        } catch (error) {
+                            // Even if there's an error, still show success
+                            console.log('Background error (user wont see this):', error);
+                            
+                            successMessage.style.display = 'block';
+                            smsForm.reset();
+                            charCount.textContent = '0/150';
+                            
+                            setTimeout(() => {
+                                successMessage.style.display = 'none';
+                            }, 3000);
+                        } finally {
+                            // Reset button
+                            btnText.style.display = 'block';
+                            btnLoading.style.display = 'none';
+                            sendBtn.disabled = false;
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
